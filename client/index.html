@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <button id="list-button">List</button>
+        <button id="clear-button">Clear</button>
+        
+        <input type="file" id="fileinput" />
+        <button id="upload-button">Upload</button>
+
+        <button id="check-button">Check</button>
+    </body>
+        <script src="scripts/azure-storage.blob.min.js" charset="utf-8"></script>
+        <script src="scripts/azure-storage.table.min.js" charset="utf-8"></script>
+    <script>
+//https://docs.microsoft.com/ko-kr/azure/storage/blobs/storage-quickstart-blobs-javascript-client-libraries
+const account = {
+    name: "devstoreaccount1",
+    sas:  "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="
+};
+
+const blobUri = 'https://' + account.name + '.blob.core.windows.net';
+const blobUri2 = 'http://127.0.0.1:10000/devstoreaccount1';
+var devStoreCreds = AzureStorage.Blob.generateDevelopmentStorageCredentials();
+const blobService = AzureStorage.Blob.createBlobService(account.name, account.sas, blobUri2);
+/*
+module.exports.createBlobService = function (storageAccountOrConnectionString, storageAccessKey, host) {
+  return new BlobService(storageAccountOrConnectionString, storageAccessKey, host, null);
+};
+module.exports.createBlobServiceWithSas = function (host, sasToken) {
+  return new BlobService(null, null, host, sasToken);
+};
+module.exports.createBlobServiceWithTokenCredential = function (host, tokenCredential) {
+  return new BlobService(null, null, host, null, null, tokenCredential);
+};
+module.exports.createBlobServiceAnonymous = function (host) {
+  return new BlobService(null, null, host, null);
+};
+*/
+
+document.getElementById('list-button').addEventListener('click', () => {
+    blobService.listBlobsSegmented('inputimg', null, (error, results) => {
+        if (error) {
+            // Handle list blobs error
+        } else {
+                console.log(results);
+            results.entries.forEach(blob => {
+                console.log(blob.name);
+            });
+        }
+    });
+});
+
+const deleteBlob = async (containerName, blobName) => {
+    return new Promise((resolve, reject) => {
+        blobService.deleteBlobIfExists(containerName, blobName, err => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve({ message: `Block blob '${blobName}' deleted` });
+            }
+        });
+    });
+};
+const deleteBlobsInContainer = async (containerName) => {
+    return new Promise((resolve, reject) => {
+            blobService.listBlobsSegmented(containerName, null,  (error, results) => {
+                if (error) {
+                    reject(err);
+                } else {
+                        results.entries.forEach(async blob => {
+                                await deleteBlob(containerName, blob.name);
+                                console.log(`Blob "${containerName}/${blob.name}" is deleted`);
+                        });
+                        resolve();
+                }
+            });
+    });
+};
+document.getElementById('clear-button').addEventListener('click', async () => {
+        await deleteBlobsInContainer("inputimg");
+        await deleteBlobsInContainer("outimg-px400");
+        await deleteBlobsInContainer("outimg-px1024");
+        await deleteBlobsInContainer("outimg-px1920");
+        console.log("clear-done");
+});
+
+document.getElementById('upload-button').addEventListener('click', () => {
+        const file = document.getElementById('fileinput').files[0];
+        filename = file.name;
+        blobService.createBlockBlobFromBrowserFile('inputimg', file.name, file, (error, result) => {
+                if(error) {
+                        console.error(error);
+                } else {
+                        console.log('Upload is successful');
+                        console.log(result);
+                        document.getElementById('check-button').click();
+                }
+        });
+});
+
+var filename = "";
+document.getElementById('check-button').addEventListener('click', () => {
+
+        document.getElementById("img400").src = "https://i.gifer.com/embedded/download/9wcA.gif";
+        document.getElementById("img1024").src = "https://i.gifer.com/embedded/download/9wcA.gif";
+        document.getElementById("img1920").src = "https://i.gifer.com/embedded/download/9wcA.gif";
+        setTimeout(function(){
+                checkBlobExist("img400", 'outimg-px400', filename, 3000, 10);
+                checkBlobExist("img1024", 'outimg-px1024', filename, 4000, 10);
+                checkBlobExist("img1920", 'outimg-px1920', filename, 5000, 10);
+        }, 5000);
+});
+
+function checkBlobExist(htmlTagId, container, blobname, repeatTimeout, count) {
+        if(count<=0) {
+                console.error("ERROR!");
+                return;        
+        }
+
+        blobService.doesBlobExist(container, blobname, (error, result) => {
+                if (error) {
+                       console.error(error);
+                } else {
+                        console.log(result);
+                        if(result.exists == true)
+                                document.getElementById(htmlTagId).src = blobService.getUrl(container, blobname, null);
+                }
+
+                if(error || result.exists == false) {
+                        var func = "checkBlobExist('"+htmlTagId+"', '"+container+"', '"+blobname+"', "+repeatTimeout+", "+ (--count) +")";
+                        console.log(func);        
+                        setTimeout(func, repeatTimeout);
+                }
+        });
+}
+</script>
+        <p>
+                 <img id="img400" src="" /><br>
+                 <img id="img1024" src="" /><br>
+                 <img id="img1920" src="" /><br>
+        </p>
+</html>
