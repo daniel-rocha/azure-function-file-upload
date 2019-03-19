@@ -1,0 +1,9 @@
+{
+  "azureFunctions.projectRuntime": "~2",
+  "azureFunctions.projectLanguage": "Java",
+  "azureFunctions.templateFilter": "Verified",
+  "azureFunctions.deploySubpath": "target/azure-functions/uploadfunction-1552900503699/",
+  "azureFunctions.preDeployTask": "package",
+  "debug.internalConsoleOptions": "neverOpen",
+  "java.configuration.updateBuildConfiguration": "automatic"
+}
