@@ -14,14 +14,14 @@
     <script>
 //https://docs.microsoft.com/ko-kr/azure/storage/blobs/storage-quickstart-blobs-javascript-client-libraries
 const account = {
-    name: "devstoreaccount1",
-    sas:  "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="
+    name: "drfileuploadstorage",
+    sas:  "X9Od8qhUy7bohDcdyurvmkvFy5jUC6ssXPIcfuSPakd7D4KMcQK/Mo7+O7HRfFvhr4SI/OKzXczk8iGNk58KAQ=="
 };
 
 const blobUri = 'https://' + account.name + '.blob.core.windows.net';
 const blobUri2 = 'http://127.0.0.1:10000/devstoreaccount1';
 var devStoreCreds = AzureStorage.Blob.generateDevelopmentStorageCredentials();
-const blobService = AzureStorage.Blob.createBlobService(account.name, account.sas, blobUri2);
+const blobService = AzureStorage.Blob.createBlobService(account.name, account.sas, blobUri);
 /*
 module.exports.createBlobService = function (storageAccountOrConnectionString, storageAccessKey, host) {
   return new BlobService(storageAccountOrConnectionString, storageAccessKey, host, null);
@@ -108,7 +108,7 @@ document.getElementById('check-button').addEventListener('click', () => {
                 checkBlobExist("img400", 'outimg-px400', filename, 3000, 10);
                 checkBlobExist("img1024", 'outimg-px1024', filename, 4000, 10);
                 checkBlobExist("img1920", 'outimg-px1920', filename, 5000, 10);
-        }, 5000);
+        }, 1000);
 });
 
 function checkBlobExist(htmlTagId, container, blobname, repeatTimeout, count) {
